@@ -8,7 +8,7 @@ from sklearn.metrics import confusion_matrix
 import json
 import os
 
-def get_fetal_dataset(file_path,corr_threshold):
+def get_fetal_dataset(file_path,data_description_path,corr_threshold):
     # Import csv
     data = pd.read_csv(file_path)
     print('------------------------------------------------------------------')
@@ -25,7 +25,7 @@ def get_fetal_dataset(file_path,corr_threshold):
     y = data['fetal_health']
 
     # Cargar el archivo JSON y convertirlo en un diccionario
-    with open('/Users/ajelandro/Documents/GitHub/mLconnumpy/data_description.json', 'r') as archivo:
+    with open(data_description_path, 'r') as archivo:
         data_description = json.load(archivo)
 
     description_flag = input('View data description? (y/n)      ')
@@ -44,12 +44,13 @@ def get_fetal_dataset(file_path,corr_threshold):
 
     return data[cols], X, y, data_description
 
-def get_distribution_plots(data,cols,data_description):
+def get_distribution_plots(data,cols,data_description,base_dir):
     for col in cols:
         plt.figure(figsize=(6, 6))
         sns.histplot(data[col])
         plt.xlabel(data_description[col])
-        plt.savefig('distribution_'+col+'.png')
+        path = os.path.join(base_dir,'graphs')
+        plt.savefig(path + '/distribution_' + col + '.png')
     print('Generated Distribution plots for:',str(cols))
     print('------------------------------------------------------------------')
 
@@ -71,7 +72,7 @@ def gradient_descent(X, y, weights, learning_rate, iterations):
         weights -= learning_rate * gradient
     return weights
 
-def train_rl(X, y, learning_rate, iterations, data_description, sigmoid_input):
+def train_rl(X, y, learning_rate, iterations, data_description, sigmoid_input, base_dir):
     print('Training LR...')
     y = (y == 1).astype(int)
 
@@ -111,7 +112,8 @@ def train_rl(X, y, learning_rate, iterations, data_description, sigmoid_input):
     plt.title('RL usando: ' + str(used_cols).replace('[','').replace(']',''))
     plt.ylabel('Actual')
     plt.xlabel('Predicción')
-    plt.savefig('confusion_matrix_' + 'learning_rate=' + str(learning_rate) + '_iterations=' + str(iterations) + '.png')
+    path = os.path.join(base_dir,'graphs')
+    plt.savefig(path + '/confusion_matrix_' + 'learning_rate=' + str(learning_rate) + '_iterations=' + str(iterations) + '.png')
 
     return y_test, y_pred, accuracy, weights, scaler
 
@@ -139,15 +141,19 @@ def predict(X, weights, scaler):
         print('------------------------------------------------------------------')
 
 def main():
-    file_path = "/Users/ajelandro/Documents/GitHub/mLconnumpy/fetal_health.csv"
-    input_data_path = "/Users/ajelandro/Documents/GitHub/mLconnumpy/input_data.json"
+
+    base_dir = os.getcwd()
+
+    file_path = os.path.join(base_dir,"dataset/fetal_health.csv")
+    data_description_path = os.path.join(base_dir,"dataset/data_description.json")
+    input_data_path = os.path.join(base_dir,"input_data.json")
     with open(input_data_path, 'r') as archivo:
         input_data = json.load(archivo)
 
     print(input_data)
-    data, X, y, data_description = get_fetal_dataset(file_path, input_data["correlation"])
-    get_distribution_plots(data, list(X.columns), data_description)
-    y_test, y_pred, accuracy, weights, scaler = train_rl(X, y, input_data["learning_rate"], input_data["iterations"], data_description, input_data['sigmoid'])
+    data, X, y, data_description = get_fetal_dataset(file_path,data_description_path,input_data["correlation"])
+    get_distribution_plots(data, list(X.columns), data_description, base_dir)
+    y_test, y_pred, accuracy, weights, scaler = train_rl(X, y, input_data["learning_rate"], input_data["iterations"], data_description, input_data['sigmoid'],base_dir)
     predict(X, weights, scaler)
 
 if __name__ == '__main__':
