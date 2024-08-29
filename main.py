@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix
 import json
+import os
 
 def get_fetal_dataset(file_path,corr_threshold):
     # Import csv
