@@ -18,7 +18,7 @@ En caso de no tenerlas, me aseguré que al correr el proyecto se instalen gracia
 
 El proyecto requiere los siguientes archivos:
 
-- `fetal_health.csv`: Un archivo CSV que contiene los datos del conjunto de características y la columna objetivo fetal_health.
+- `fetal_health.csv`: Un archivo CSV que contiene los datos del conjunto de características y la columna objetivo `fetal_health`.
 
 - `data_description.json`: Un archivo JSON que contiene descripciones de cada una de las características del conjunto de datos.
 
@@ -31,7 +31,7 @@ La función `get_fetal_dataset(file_path, corr_threshold)` realiza las siguiente
 
 - Carga los datos desde el archivo CSV.
 
-- Calcula la correlación de las características con la columna objetivo fetal_health y selecciona las características con una correlación superior al umbral (corr_threshold).
+- Calcula la correlación de las características con la columna objetivo `fetal_health` y selecciona las características con una correlación superior al umbral `(corr_threshold)`.
 
 - Convierte la columna objetivo fetal_health a una variable binaria (1 para sospechoso, 0 para normal).
 
@@ -57,7 +57,7 @@ La función `train_rl(X, y, learning_rate, iterations, data_description)`:
 La función `predict(X, weights, scaler)` permite al usuario ingresar nuevos datos y predecir la salud fetal utilizando el modelo entrenado.
 
 ### 5. Ejecución del programa
-El script principal se encuentra en la función main(). Para ejecutar todo el proceso, simplemente corre el archivo en el directorio correcto:
+El script principal se encuentra en la función `main()`. Para ejecutar todo el proceso, simplemente corre el archivo en el directorio correcto:
 
 ```bash
 python main.py
