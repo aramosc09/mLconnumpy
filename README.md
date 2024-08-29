@@ -12,11 +12,7 @@ Antes de ejecutar el código, asegúrate de tener instaladas las siguientes libr
 - `seaborn`
 - `scikit-learn`
 
-Puedes instalar estas dependencias usando pip:
-
-```bash
-pip install numpy pandas matplotlib seaborn scikit-learn
-```
+En caso de no tenerlas, me aseguré que al correr el proyecto se instalen gracias a `requirements.txt`.
 
 ## Archivos necesarios
 
@@ -71,9 +67,9 @@ python main.py
 Puedes ajustar el umbral de correlación, la posición del sigmoide, la tasa de aprendizaje `(learning_rate)`, y el número de iteraciones `(iterations)` según tus necesidades en el archivo `PROJECT_PATH/input_data.json`.
 
 ## Salida
-- Gráficos de distribución: Guardados como archivos PNG con el nombre `distribution_<column_name>.png`.
+- Gráficos de distribución: Guardados como archivos PNG como `/PROJECT_PATH/graphs/distribution_<column_name>.png`.
 
-- Matriz de confusión: Guardada como `confusion_matrix_learning_rate=<learning_rate>_iterations=<iterations>.png`.
+- Matriz de confusión: Guardada como `/PROJECT_PATH/graphs/confusion_matrix_learning_rate=<learning_rate>_iterations=<iterations>.png`.
 
 - Precisión del modelo: Impresa en la consola.
 
