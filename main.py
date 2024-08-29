@@ -5,6 +5,7 @@ import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix
+import json
 
 def get_fetal_dataset(file_path,corr_threshold):
     # Import csv
@@ -21,12 +22,32 @@ def get_fetal_dataset(file_path,corr_threshold):
     # Separar las características (X) de la variable objetivo (y)
     X = data[cols]
     y = data['fetal_health']
-    return data[cols], X, y
 
-def get_distribution_plots(data,cols):
+    # Cargar el archivo JSON y convertirlo en un diccionario
+    with open('/Users/ajelandro/Documents/GitHub/mLconnumpy/data_description.json', 'r') as archivo:
+        data_description = json.load(archivo)
+
+    description_flag = input('View data description? (y/n)      ')
+
+    if description_flag == 'y':
+        for col in cols:
+            print('\033[1m\033[38;5;214m' + col + '\033[0m' + ':', data_description[col])
+        print('------------------------------------------------------------------')
+        print('Proceeding to get distribution plots...')
+    elif description_flag == 'n':
+        print('------------------------------------------------------------------')
+        print('Proceeding to get distribution plots...')
+    else:
+        print('------------------------------------------------------------------')
+        print('No valid answer received. Proceeding to get distribution plots...')
+
+    return data[cols], X, y, data_description
+
+def get_distribution_plots(data,cols,data_description):
     for col in cols:
         plt.figure(figsize=(6, 6))
         sns.histplot(data[col])
+        plt.xlabel(data_description[col])
         plt.savefig('distribution_'+col+'.png')
     print('Generated Distribution plots for:',str(cols))
     print('------------------------------------------------------------------')
@@ -49,7 +70,8 @@ def gradient_descent(X, y, weights, learning_rate, iterations):
         weights -= learning_rate * gradient
     return weights
 
-def train_rl(X, y, learning_rate, iterations):
+def train_rl(X, y, learning_rate, iterations, data_description, sigmoid_input):
+    print('Training LR...')
     y = (y == 1).astype(int)
 
     # Normalizar las características
@@ -66,9 +88,9 @@ def train_rl(X, y, learning_rate, iterations):
     weights = gradient_descent(X_train, y_train, weights, learning_rate, iterations)
 
     # Predicción y evaluación en el conjunto de prueba
-    y_pred = sigmoid(np.dot(X_test, weights)) >= 0.5
+    y_pred = sigmoid(np.dot(X_test, weights)) >= sigmoid_input
     accuracy = np.mean(y_pred == y_test)
-    print('Training complete!')
+    print('\033[1m\033[32mTraining complete!\033[0m')
     print('------------------------------------------------------------------')
 
     print('Accuracy:', accuracy)
@@ -81,7 +103,11 @@ def train_rl(X, y, learning_rate, iterations):
     plt.figure(figsize=(15, 10))
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', cbar=False)
 
-    plt.title('RL usando ' + str(list(X.columns)))
+    used_cols = []
+    for col in list(X.columns):
+        used_cols.append(data_description[col])
+
+    plt.title('RL usando: ' + str(used_cols).replace('[','').replace(']',''))
     plt.ylabel('Actual')
     plt.xlabel('Predicción')
     plt.savefig('confusion_matrix_' + 'learning_rate=' + str(learning_rate) + '_iterations=' + str(iterations) + '.png')
@@ -89,31 +115,38 @@ def train_rl(X, y, learning_rate, iterations):
     return y_test, y_pred, accuracy, weights, scaler
 
 def predict(X, weights, scaler):
-    print('Predict...')
+    print('Please enter data for model to predict:')
 
     new_data_values = []
     for col in list(X.columns):
-        instance = input(col+': ')
+        instance = input('      '+'\033[1m\033[38;5;214m' + col + '\033[0m'+': ')
         new_data_values.append(float(instance))  # Asegúrate de que sean valores numéricos
 
     new_data = pd.DataFrame([new_data_values], columns=list(X.columns))
 
     # Normalizar las características del nuevo conjunto de datos utilizando el scaler ajustado
     new_data_scaled = scaler.transform(new_data)
-
     # Realizar la predicción
     new_prediction = sigmoid(np.dot(new_data_scaled, weights)) >= 0.5
+    print('------------------------------------------------------------------')
+
     if new_prediction[0] == False:
-        print("Predicción: El feto es sano.")
+        print("\033[1mPrediction\033[0m: Fetal health is normal.")
+        print('------------------------------------------------------------------')
     else:
-        print("Predicción: La salud del feto puede estar en riesgo por lo que se recomienda estudio.") 
+        print("\033[1mPrediction\033[0m: Suspect fetal health detected. Further study is highly recommended.")
+        print('------------------------------------------------------------------')
 
 def main():
     file_path = "/Users/ajelandro/Documents/GitHub/mLconnumpy/fetal_health.csv"
-    data, X, y = get_fetal_dataset(file_path, 0.3)
-    get_distribution_plots(data, list(X.columns))
-    print('About to train RL...')
-    y_test, y_pred, accuracy, weights, scaler = train_rl(X, y, 0.01, 10000)
+    input_data_path = "/Users/ajelandro/Documents/GitHub/mLconnumpy/input_data.json"
+    with open(input_data_path, 'r') as archivo:
+        input_data = json.load(archivo)
+
+    print(input_data)
+    data, X, y, data_description = get_fetal_dataset(file_path, input_data["correlation"])
+    get_distribution_plots(data, list(X.columns), data_description)
+    y_test, y_pred, accuracy, weights, scaler = train_rl(X, y, input_data["learning_rate"], input_data["iterations"], data_description, input_data['sigmoid'])
     predict(X, weights, scaler)
 
 if __name__ == '__main__':
