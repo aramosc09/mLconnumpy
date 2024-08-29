@@ -7,6 +7,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix
 import json
 import os
+import subprocess
+import sys
 
 def get_fetal_dataset(file_path,data_description_path,corr_threshold):
     # Import csv
@@ -122,8 +124,15 @@ def predict(X, weights, scaler):
 
     new_data_values = []
     for col in list(X.columns):
-        instance = input('      '+'\033[1m\033[38;5;214m' + col + '\033[0m'+': ')
-        new_data_values.append(float(instance))  # Asegúrate de que sean valores numéricos
+        valid_input = False
+        while valid_input == False:
+            try:
+                instance = input('      '+'\033[1m\033[38;5;214m' + col + '\033[0m'+': ')
+                new_data_values.append(float(instance))  # Asegúrate de que sean valores numéricos
+                valid_input = True
+                break
+            except:
+                print('     Invalid data. Must be integer or float.')
 
     new_data = pd.DataFrame([new_data_values], columns=list(X.columns))
 
@@ -140,20 +149,32 @@ def predict(X, weights, scaler):
         print("\033[1mPrediction\033[0m: Suspect fetal health detected. Further study is highly recommended.")
         print('------------------------------------------------------------------')
 
-def main():
+def install_requirements(requirements_file):
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", requirements_file])
+        print("\033[1m\033[32mAll packages installed successfully!\033[0m")
+    except subprocess.CalledProcessError as e:
+        print("\033[1m\033[31mError installing packages:\033[0m", e)
 
+def main():
+    # Get base dir
     base_dir = os.getcwd()
 
+    # Install required libraries
+    requirements_file = os.path.join(base_dir, "requirements.txt")
+    install_requirements(requirements_file)
+
+    # Get needed files
     file_path = os.path.join(base_dir,"dataset/fetal_health.csv")
     data_description_path = os.path.join(base_dir,"dataset/data_description.json")
     input_data_path = os.path.join(base_dir,"input_data.json")
     with open(input_data_path, 'r') as archivo:
         input_data = json.load(archivo)
 
-    print(input_data)
+    # Run project
     data, X, y, data_description = get_fetal_dataset(file_path,data_description_path,input_data["correlation"])
     get_distribution_plots(data, list(X.columns), data_description, base_dir)
-    y_test, y_pred, accuracy, weights, scaler = train_rl(X, y, input_data["learning_rate"], input_data["iterations"], data_description, input_data['sigmoid'],base_dir)
+    y_test, y_pred, accuracy, weights, scaler = train_rl(X, y, input_data["learning_rate"], input_data["iterations"], data_description, input_data['sigmoid'], base_dir)
     predict(X, weights, scaler)
 
 if __name__ == '__main__':
