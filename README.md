@@ -74,3 +74,9 @@ Puedes ajustar el umbral de correlación, la posición del sigmoide, la tasa de 
 - Precisión del modelo: Impresa en la consola.
 
 - Predicción de la salud fetal: Impresa en la consola tras la entrada de nuevos datos.
+
+## Ejemplo
+
+Por si le da flojera darle run.
+
+![Texto alternativo](run_example.png)
